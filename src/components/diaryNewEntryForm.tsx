@@ -1,25 +1,46 @@
-import { useState } from "react";
-import { NewDiary, Visibility, Weather } from "../services/types";
+import { Dispatch, SetStateAction, useState } from "react";
+import { Diary, NewDiary, Visibility, Weather } from "../services/types";
+import { addDiary } from "../services/diaryService";
+import axios from "axios";
 
 const visibilities = Object.values(Visibility);
 const weathers = Object.values(Weather);
-
-const NewDiaryForm = () => {
-  const [newDiary, setNewDiary] = useState<NewDiary>({
-    date: "",
-    weather: weathers[0],
-    visibility: visibilities[0],
-    comment: "",
-  });
+const initNewDiaryValue = {
+  date: "",
+  weather: weathers[0],
+  visibility: visibilities[0],
+  comment: "",
+};
+const NewDiaryForm = ({
+  setDiaries,
+}: {
+  setDiaries: Dispatch<SetStateAction<Diary[]>>;
+}) => {
+  const [newDiary, setNewDiary] = useState<NewDiary>(initNewDiaryValue);
   const [errorMessage, setErrorMessage] = useState<string>();
+  const [successMessage, setSuccessMessage] = useState<string>();
 
-  const handleAddNewDiary = (e: React.SyntheticEvent) => {
+  const handleAddNewDiary = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    console.log(newDiary);
+    try {
+      const response = await addDiary(newDiary);
+      setDiaries((old: Diary[]) => [...old, response]);
+      setNewDiary(initNewDiaryValue);
+      setSuccessMessage(`diary added - ${response.date}`);
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        setErrorMessage(e.message);
+      }
+      setErrorMessage("something went wrong during data fetch");
+    }
   };
 
   return (
     <form onSubmit={handleAddNewDiary}>
+      {successMessage && <p style={{ color: "green" }}>{successMessage}</p>}
       {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
       <div>
         <label htmlFor="diaryDate">Date</label>

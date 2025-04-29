@@ -19,7 +19,7 @@ const App = () => {
   return (
     <>
       <h1>Add new diary</h1>
-      <NewDiaryForm />
+      <NewDiaryForm setDiaries={setDiaries} />
       <h1>Diary entries</h1>
       {diaries.map((diary) => (
         <DiaryComponent key={diary.id} diary={diary} />
